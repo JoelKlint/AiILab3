@@ -49,5 +49,21 @@ public class State {
 		}
 		return false;
 	}
+	
+	public boolean samePosition(Object o) {
+		if(o instanceof State) {
+			State inState = (State) o;
+			return inState.getRow() == getRow() && inState.getCol() == getCol();
+		}
+		return false;
+	}
+	
+	public boolean isCorner() {
+		return (row == 0 || row ==3) && (col == 0 || col == 3); 
+	}
+	
+	public boolean isWall() {
+		return (row == 0 || row ==3) || (col == 0 || col == 3); 
+	}
 
 }
