@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import control.EstimatorInterface;
@@ -267,8 +268,57 @@ public class OurLocalizer implements EstimatorInterface {
 
 	@Override
 	public int[] getCurrentReading() {
-		// TODO Auto-generated method stub
+		int[] result = new int[2];
+		int currentStateIndex = i(trueRow, trueCol, trueHeading);
+		State currentState = states[currentStateIndex];
+		
+		//Get all neighbors 
+		ArrayList<State> neighbors = new ArrayList<State>();
+		for(State state : states) {
+			if(currentState.isNeighbor(state)) {
+				neighbors.add(state);
+			}
+		}
+		ArrayList<State> secondNeighbors = new ArrayList<State>();
+		for(State state : states) {
+			if(currentState.isSecondNeighbor(state)) {
+				secondNeighbors.add(state);
+			}
+		}
+
+		// RETURN SOMETHING
+		Random rand = new Random();
+		double random = rand.nextDouble();
+		double totProb = 0;
+		// return true position
+		if(random <= totProb + 0.1) {
+			result[0] = trueRow;
+			result[1] = trueCol;
+			return result;
+		}
+		totProb += 0.1;
+		// return neighbor
+		if(random <= totProb + 0.05*neighbors.size()/4) {
+			int randomIndex = rand.nextInt(neighbors.size());
+			State state = neighbors.get(randomIndex);
+			result[0] = state.getRow();
+			result[1] = state.getCol();
+			return result;
+		}
+		totProb += 0.05*neighbors.size()/4;
+		//return second neighbor
+		if(random <= totProb + 0.025*secondNeighbors.size()/4) {
+			int randomIndex = rand.nextInt(secondNeighbors.size());
+			State state = secondNeighbors.get(randomIndex);
+			result[0] = state.getRow();
+			result[1] = state.getCol();
+			return result;
+		}
+		totProb += 0.025*secondNeighbors.size()/4;
+		
+		//return nothing
 		return null;
+		
 	}
 
 	@Override
