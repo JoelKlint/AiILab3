@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.DoubleStream;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+
 import control.EstimatorInterface;
 
 public class OurLocalizer implements EstimatorInterface {
@@ -339,39 +342,12 @@ public class OurLocalizer implements EstimatorInterface {
 
 	@Override
 	public double getCurrentProb(int x, int y) {
-		return 0;
-		/*
-		State inState = states[i(x, y, NORTH)];
-		double prob = 0;
-		
-		if(sensorPosition == null) {
-			System.out.println("sensorState is nada");
-			if(inState.isCorner()) {
-				prob += (1 - (0.1 + 0.05*3 + 0.025*5))/4;
-			}
-			else if(inState.isWall()) {
-				prob += (1 - (0.1 + 0.05*5 + 0.025*6))/8;
-			}
-			else {
-				prob += (1 - (0.1 + 0.05*8 + 0.025*7))/4;
-			}		
-		}
-		else {
-			State sensorState = states[i(sensorPosition[0], sensorPosition[1], NORTH)];
-			if (inState.samePosition(sensorState)) {
-				prob += 0.1;
-			}
-			else if(inState.isNeighbor(sensorState)) {
-				prob += 0.05;
-			}
-			else if(inState.isSecondNeighbor(sensorState)) {
-				prob += 0.025;
-			}
-		}
-		
-		return prob;
-		*/
-
+		RealMatrix sensor = MatrixUtils.createRealMatrix(sensorMatrix);
+		RealMatrix transition = MatrixUtils.createRealMatrix(transitionMatrix);
+		transition = transition.transpose();
+		RealMatrix res = sensor.multiply(transition);
+		return res.getEntry(x, y);
+		//return Math.random();
 	}
 
 	@Override
