@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.stream.DoubleStream;
 
 import control.EstimatorInterface;
 
@@ -16,6 +17,7 @@ public class OurLocalizer implements EstimatorInterface {
 	private int[] sensorPosition = new int[2];
 
 	double[][] transitionMatrix = new double[64][64];
+	double[][] sensorMatrix = new double[64][64];
 	State[] states = new State[64];
 	private int rows, cols, heads;
 
@@ -205,7 +207,27 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row, col - 1, WEST)] = 0.7;
 			transitionMatrix[i(row, col, WEST)][i(row + 1, col, SOUTH)] = 0.15;
 		}
-
+		
+		//Create sensor matrix
+		for(int heading = NORTH; heading <= WEST; heading++) {
+			for(State currentState : states) {
+				int cRow = currentState.getRow();
+				int cCol = currentState.getCol();
+				for(State sensorState : states) {
+					int sRow = sensorState.getRow();
+					int sCol = sensorState.getCol();
+					if(sensorState.samePosition(currentState)) {
+						sensorMatrix[i(cRow, cCol, heading)][i(sRow, sCol, heading)] = 0.1;
+					}
+					else if(sensorState.isNeighbor(currentState)) {
+						sensorMatrix[i(cRow, cCol, heading)][i(sRow, sCol, heading)] = 0.05;
+					}
+					else if(sensorState.isSecondNeighbor(currentState)) {
+						sensorMatrix[i(cRow, cCol, heading)][i(sRow, sCol, heading)] = 0.025;
+					}
+				}
+			}
+		}
 	}
 
 	private int i(int row, int col, int heading) {
@@ -354,36 +376,12 @@ public class OurLocalizer implements EstimatorInterface {
 
 	@Override
 	public double getOrXY(int rX, int rY, int x, int y) {
-		System.out.println("X:" + x + "Y:" + y);
-		System.out.println("RX:" + rX + "RY:" + rY);
-		State actualState = states[i(x, y, NORTH)];
-		double prob = 0;
-		// if input is no sensor reading
 		if(rY == -1 || rX == -1) {
-			if(actualState.isCorner()) {
-				prob += 1 - (0.1 + 0.05*3 + 0.025*5);
-			}
-			else if(actualState.isWall()) {
-				prob += 1 - (0.1 + 0.05*5 + 0.025*6);
-			}
-			else {
-				prob += 1 - (0.1 + 0.05*8 + 0.025*7);
-			}	
+			return 1 - DoubleStream.of(sensorMatrix[i(x, y, NORTH)]).sum();
 		}
-		// if input is valid sensor reading
 		else {
-			State readingState = states[i(rX, rY, NORTH)];
-			if (readingState.samePosition(actualState)) {
-				prob += 0.1;
-			}
-			else if(readingState.isNeighbor(actualState)) {
-				prob += 0.05;
-			}
-			else if(readingState.isSecondNeighbor(actualState)) {
-				prob += 0.025;
-			}
+			return sensorMatrix[i(x, y, NORTH)][i(rX, rY, NORTH)];
 		}
-		return prob;
 	}
 
 	@Override
