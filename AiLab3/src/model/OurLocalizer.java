@@ -9,7 +9,7 @@ public class OurLocalizer implements EstimatorInterface {
 	public static final int SOUTH = 2;
 	public static final int WEST = 3;
 	
-	private int row, col, heading;
+	private int trueRow, trueCol, trueHeading;
 	
 	double[][] transitionMatrix = new double[64][64];
 	State[] states = new State[64];
@@ -19,9 +19,9 @@ public class OurLocalizer implements EstimatorInterface {
 		this.rows = rows;
 		this.cols = cols;
 		this.heads = heads;
-		row = 0;
-		col = 1;
-		heading = NORTH;
+		trueRow = 0;
+		trueCol = 1;
+		trueHeading = NORTH;
 		
 		//Create all possible states
 		for(int row = 0; row < rows; row++){
@@ -34,7 +34,6 @@ public class OurLocalizer implements EstimatorInterface {
 		}
 		
 		//Create transitionMatrix
-		int row, heading;
 		
 		//Middle cases
 		
@@ -50,7 +49,7 @@ public class OurLocalizer implements EstimatorInterface {
 		 */
 		for(int col = 1; col <= 2; col++) {
 			//North
-			row = 0;
+			int row = 0;
 				//Looking north
 			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.33;
 			transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.33;
@@ -70,8 +69,8 @@ public class OurLocalizer implements EstimatorInterface {
 			//South
 			row = 3;
 			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.15;
-			transitionMatrix[i(row, col, NORTH)][i(row+1, col, NORTH)] = 0.7;
-			transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.33;
+			transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
+			transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.15;
 		}
 		
 	}
@@ -104,8 +103,8 @@ public class OurLocalizer implements EstimatorInterface {
 	@Override
 	public int[] getCurrentTruePosition() {
 		int[] res = new int[2];
-		res[0] = row;
-		res[1] = col;
+		res[0] = trueRow;
+		res[1] = trueCol;
 		return res;
 	}
 
