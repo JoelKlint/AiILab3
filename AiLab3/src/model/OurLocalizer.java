@@ -34,11 +34,64 @@ public class OurLocalizer implements EstimatorInterface {
 		}
 		
 		//Create transitionMatrix
+		int row, col;
 		
 		//Middle cases
 		
 		
 		//Corner cases
+		//North West
+		row = 0;
+		col = 0;
+			//Looking into wall
+		transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.5;
+		transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.5;
+		transitionMatrix[i(row, col, WEST)][i(row, col+1, EAST)] = 0.5;
+		transitionMatrix[i(row, col, WEST)][i(row+1, col, SOUTH)] = 0.5;
+			//not looking into wall
+		transitionMatrix[i(row, col, EAST)][i(row, col+1, EAST)] = 0.7;
+		transitionMatrix[i(row, col, EAST)][i(row+1, col, SOUTH)] = 0.3;
+		transitionMatrix[i(row, col, SOUTH)][i(row, col+1, EAST)] = 0.3;
+		transitionMatrix[i(row, col, SOUTH)][i(row+1, col, SOUTH)] = 0.7;
+		//North East
+		row = 0;
+		col = 3;
+			//Looking into wall
+		transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.5;
+		transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.5;
+		transitionMatrix[i(row, col, EAST)][i(row, col-1, WEST)] = 0.5;
+		transitionMatrix[i(row, col, EAST)][i(row+1, col, SOUTH)] = 0.5;
+			//not looking into wall
+		transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
+		transitionMatrix[i(row, col, WEST)][i(row+1, col, SOUTH)] = 0.3;
+		transitionMatrix[i(row, col, SOUTH)][i(row, col-1, WEST)] = 0.3;
+		transitionMatrix[i(row, col, SOUTH)][i(row+1, col, SOUTH)] = 0.7;
+		//South West
+		row = 3;
+		col = 0;
+			//Looking into wall
+		transitionMatrix[i(row, col, SOUTH)][i(row, col+1, EAST)] = 0.5;
+		transitionMatrix[i(row, col, SOUTH)][i(row-1, col, NORTH)] = 0.5;
+		transitionMatrix[i(row, col, WEST)][i(row, col+1, EAST)] = 0.5;
+		transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.5;
+			//not looking into wall
+		transitionMatrix[i(row, col, EAST)][i(row, col+1, EAST)] = 0.7;
+		transitionMatrix[i(row, col, EAST)][i(row-1, col, NORTH)] = 0.3;
+		transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.3;
+		transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
+		//South East
+		row = 3;
+		col = 3;
+			//Looking into wall
+		transitionMatrix[i(row, col, SOUTH)][i(row, col-1, WEST)] = 0.5;
+		transitionMatrix[i(row, col, SOUTH)][i(row-1, col, NORTH)] = 0.5;
+		transitionMatrix[i(row, col, EAST)][i(row, col-1, WEST)] = 0.5;
+		transitionMatrix[i(row, col, EAST)][i(row-1, col, NORTH)] = 0.5;
+			//not looking into wall
+		transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
+		transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.3;
+		transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.3;
+		transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
 		
 		
 		//Next to wall && looking into wall cases
@@ -47,9 +100,9 @@ public class OurLocalizer implements EstimatorInterface {
 		/*
 		 * Next to wall && not looking into wall cases
 		 */
-		for(int col = 1; col <= 2; col++) {
+		for(col = 1; col <= 2; col++) {
 			//North
-			int row = 0;
+			row = 0;
 				//Looking north
 			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.33;
 			transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.33;
@@ -85,9 +138,9 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.15;
 			transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
 		}
-		for(int row = 1; row <= 2; row++) {
+		for(row = 1; row <= 2; row++) {
 			//West
-			int col = 0;
+			col = 0;
 				//Looking north
 			transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
 			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.15;
