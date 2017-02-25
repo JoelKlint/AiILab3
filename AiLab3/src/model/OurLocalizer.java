@@ -68,9 +68,60 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
 			//South
 			row = 3;
+				//looking north
 			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.15;
 			transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
 			transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.15;
+				//looking east
+			transitionMatrix[i(row, col, EAST)][i(row, col+1, EAST)] = 0.7;
+			transitionMatrix[i(row, col, EAST)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, EAST)][i(row, col-1, WEST)] = 0.15;
+				//looking south
+			transitionMatrix[i(row, col, SOUTH)][i(row, col+1, EAST)] = 0.33;
+			transitionMatrix[i(row, col, SOUTH)][i(row-1, col, NORTH)] = 0.33;
+			transitionMatrix[i(row, col, SOUTH)][i(row, col-1, WEST)] = 0.33;
+				//looking west
+			transitionMatrix[i(row, col, WEST)][i(row, col+1, EAST)] = 0.15;
+			transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
+		}
+		for(int row = 1; row <= 2; row++) {
+			//West
+			int col = 0;
+				//Looking north
+			transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
+			transitionMatrix[i(row, col, NORTH)][i(row, col+1, EAST)] = 0.15;
+			transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.15;
+				//looking east
+			transitionMatrix[i(row, col, EAST)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, EAST)][i(row, col+1, EAST)] = 0.7;
+			transitionMatrix[i(row, col, EAST)][i(row+1, col, SOUTH)] = 0.15;
+				//looking south
+			transitionMatrix[i(row, col, SOUTH)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, SOUTH)][i(row, col+1, EAST)] = 0.15;
+			transitionMatrix[i(row, col, SOUTH)][i(row+1, col, SOUTH)] = 0.7;
+				//looking west
+			transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.33;
+			transitionMatrix[i(row, col, WEST)][i(row, col+1, EAST)] = 0.33;
+			transitionMatrix[i(row, col, WEST)][i(row+1, col, SOUTH)] = 0.33;
+			//East
+			col = 3;
+				//looking north
+			transitionMatrix[i(row, col, NORTH)][i(row-1, col, NORTH)] = 0.7;
+			transitionMatrix[i(row, col, NORTH)][i(row, col-1, WEST)] = 0.15;
+			transitionMatrix[i(row, col, NORTH)][i(row+1, col, SOUTH)] = 0.15;
+				//looking east
+			transitionMatrix[i(row, col, EAST)][i(row-1, col, NORTH)] = 0.33;
+			transitionMatrix[i(row, col, EAST)][i(row, col-1, WEST)] = 0.33;
+			transitionMatrix[i(row, col, EAST)][i(row+1, col, SOUTH)] = 0.33;
+				//looking south
+			transitionMatrix[i(row, col, SOUTH)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, SOUTH)][i(row, col-1, WEST)] = 0.15;
+			transitionMatrix[i(row, col, SOUTH)][i(row+1, col, SOUTH)] = 0.7;
+				//looking west
+			transitionMatrix[i(row, col, WEST)][i(row-1, col, NORTH)] = 0.15;
+			transitionMatrix[i(row, col, WEST)][i(row, col-1, WEST)] = 0.7;
+			transitionMatrix[i(row, col, WEST)][i(row+1, col, SOUTH)] = 0.15;
 		}
 		
 	}
