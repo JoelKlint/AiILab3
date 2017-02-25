@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Random;
+
 import control.EstimatorInterface;
 
 public class OurLocalizer implements EstimatorInterface {
@@ -228,6 +230,29 @@ public class OurLocalizer implements EstimatorInterface {
 
 	@Override
 	public void update() {
+		int currentStateIndex = i(trueRow, trueCol, trueHeading);
+		Random rand = new Random();
+		double random = rand.nextDouble();
+		double totProb = 0;
+		double[] probs = transitionMatrix[currentStateIndex];
+		for(int col = 0; col < probs.length; col++) {
+			
+			if(probs[col] != 0) {
+				//Check if random is in prob interval
+				if(random >= totProb && random < totProb + probs[col] ) {
+					// We have found our next state
+					State state = states[col];
+					trueRow = state.getRow();
+					trueCol = state.getCol();
+					trueHeading = state.getHeading();
+					break;
+				}
+				else {
+					totProb += probs[col];
+				}
+			}
+			
+		}
 		// TODO Auto-generated method stub
 
 	}
