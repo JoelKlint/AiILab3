@@ -15,8 +15,6 @@ public class OurLocalizer implements EstimatorInterface {
 	public static final int SOUTH = 2;
 	public static final int WEST = 3;
 	
-	private double alpha = 1;
-	
 	private RealMatrix f = MatrixUtils.createRealMatrix(new double[64][1]);
 
 	private int currentStateIndex;
@@ -319,7 +317,7 @@ public class OurLocalizer implements EstimatorInterface {
 		for(double value : f.getColumn(0)) {
 			fSum += value;
 		}
-		alpha = 1/fSum;
+		double alpha = 1/fSum;
 		f = f.scalarMultiply(alpha);
 
 		Random rand = new Random();
@@ -408,7 +406,6 @@ public class OurLocalizer implements EstimatorInterface {
 		sensorPosition = null;
 		System.out.println("No sensor reading");
 		return sensorPosition;
-
 	}
 
 	@Override
