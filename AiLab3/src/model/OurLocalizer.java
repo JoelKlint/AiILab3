@@ -15,34 +15,78 @@ public class OurLocalizer implements EstimatorInterface {
 	public static final int SOUTH = 2;
 	public static final int WEST = 3;
 	
-	private RealMatrix f = MatrixUtils.createRealMatrix(new double[64][1]);
+	private RealMatrix f;
 
 	private int currentStateIndex;
 	private int[] sensorPosition = new int[2];
 
-	double[][] transitionMatrix = new double[64][64];
-	double[][] sensorMatrix = new double[64][64];
-	double[][] sensorNullMatrix = new double[64][64];
-	State[] states = new State[64];
+	double[][] transitionMatrix;
+	double[][] sensorMatrix;
+	double[][] sensorNullMatrix;
+	State[] states;
 	private int rows, cols, heads;
+	private int stateSize;
 
 	public OurLocalizer(int rows, int cols, int heads) {
 		this.rows = rows;
 		this.cols = cols;
 		this.heads = heads;
-
+		stateSize = rows*cols*heads;
+		transitionMatrix = new double[stateSize][stateSize];
+		sensorMatrix = new double[stateSize][stateSize];
+		sensorNullMatrix = new double[stateSize][stateSize];
+		f = MatrixUtils.createRealMatrix(new double[stateSize][1]);
+		states = new State[stateSize];
+		
 		Random rand = new Random();
 		currentStateIndex = rand.nextInt(states.length);
 		
-		//Fill start values in f matrix
-		for(int row = 0; row < f.getRowDimension(); row++) {
-			for(int col = 0; col < f.getColumnDimension(); col++) {
-				f.setEntry(row, col, 0.015625);
+		// Create all possible states
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				states[i(row, col, NORTH)] = new State(row, col, NORTH);
+				states[i(row, col, EAST)] = new State(row, col, EAST);
+				states[i(row, col, SOUTH)] = new State(row, col, SOUTH);
+				states[i(row, col, WEST)] = new State(row, col, WEST);
 			}
 		}
 		
+		
+		//System.out.println(states[i(4, 4, 3)].getRow());
+		//System.out.println(i(4, 4, 3));
+		//System.exit(0);
+		
+		//Calc sensor null probs
+		double[] sensorNullProbs = new double[stateSize];
+		for(int firstIndex = 0; firstIndex < states.length; firstIndex++) {
+			State firstState = states[firstIndex];
+			
+			for(int secondIndex = 0; secondIndex < states.length; secondIndex++) {
+				State secondState = states[secondIndex];
+				
+				if(firstState.isSecondNeighbor(secondState)) {
+					sensorNullProbs[i(firstState.getRow(), firstState.getCol(), firstState.getHeading())] += 0.025;
+				}
+				else if(firstState.isNeighbor(secondState)) {
+					sensorNullProbs[i(firstState.getRow(), firstState.getCol(), firstState.getHeading())] += 0.05;
+				}
+				else if(firstState.samePosition(secondState)) {
+					sensorNullProbs[i(firstState.getRow(), firstState.getCol(), firstState.getHeading())] += 0.1;
+				}
+			}
+			
+		}
+
+		
 		//Create sensor matrix for when sensor returns nothing
-		for(int heading = 0; heading <= WEST; heading++) {
+		for(int i = 0; i < stateSize; i++) {
+			for(int heading = 0; heading <= WEST; heading++) {
+				int x = states[i].getRow();
+				int y = states[i].getCol();
+				sensorNullMatrix[i(x, y, heading)][i(x, y, heading)] = 1 - (sensorNullProbs[i(x, y, heading)]/4);
+			}
+		}
+			/*
 			//Corners
 			sensorNullMatrix[i(0, 0, heading)][i(0, 0, heading)] = 0.625;
 			sensorNullMatrix[i(0, 3, heading)][i(0, 3, heading)] = 0.625;
@@ -66,23 +110,15 @@ public class OurLocalizer implements EstimatorInterface {
 				}
 				}
 		}
+		*/
 		
-		// Create all possible states
-		for (int row = 0; row < rows; row++) {
-			for (int col = 0; col < cols; col++) {
-				states[i(row, col, NORTH)] = new State(row, col, NORTH);
-				states[i(row, col, EAST)] = new State(row, col, EAST);
-				states[i(row, col, SOUTH)] = new State(row, col, SOUTH);
-				states[i(row, col, WEST)] = new State(row, col, WEST);
-			}
-		}
 
 		// Create transitionMatrix
 		int row, col;
 
 		// Middle cases
-		for (row = 1; row <= 2; row++) {
-			for (col = 1; col <= 2; col++) {
+		for (row = 1; row <= rows - 2; row++) {
+			for (col = 1; col <= cols - 2; col++) {
 				// North
 
 				// Looking north
@@ -128,7 +164,7 @@ public class OurLocalizer implements EstimatorInterface {
 		transitionMatrix[i(row, col, SOUTH)][i(row + 1, col, SOUTH)] = 0.7;
 		// North East
 		row = 0;
-		col = 3;
+		col = cols-1;
 		// Looking into wall
 		transitionMatrix[i(row, col, NORTH)][i(row, col - 1, WEST)] = 0.5;
 		transitionMatrix[i(row, col, NORTH)][i(row + 1, col, SOUTH)] = 0.5;
@@ -140,7 +176,7 @@ public class OurLocalizer implements EstimatorInterface {
 		transitionMatrix[i(row, col, SOUTH)][i(row, col - 1, WEST)] = 0.3;
 		transitionMatrix[i(row, col, SOUTH)][i(row + 1, col, SOUTH)] = 0.7;
 		// South West
-		row = 3;
+		row = rows-1;
 		col = 0;
 		// Looking into wall
 		transitionMatrix[i(row, col, SOUTH)][i(row, col + 1, EAST)] = 0.5;
@@ -153,8 +189,8 @@ public class OurLocalizer implements EstimatorInterface {
 		transitionMatrix[i(row, col, NORTH)][i(row, col + 1, EAST)] = 0.3;
 		transitionMatrix[i(row, col, NORTH)][i(row - 1, col, NORTH)] = 0.7;
 		// South East
-		row = 3;
-		col = 3;
+		row = rows-1;
+		col = cols-1;
 		// Looking into wall
 		transitionMatrix[i(row, col, SOUTH)][i(row, col - 1, WEST)] = 0.5;
 		transitionMatrix[i(row, col, SOUTH)][i(row - 1, col, NORTH)] = 0.5;
@@ -169,7 +205,7 @@ public class OurLocalizer implements EstimatorInterface {
 		/*
 		 * Next to wall cases
 		 */
-		for (col = 1; col <= 2; col++) {
+		for (col = 1; col <= cols - 2; col++) {
 			// North
 			row = 0;
 			// Looking north
@@ -189,7 +225,7 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row + 1, col, SOUTH)] = 0.15;
 			transitionMatrix[i(row, col, WEST)][i(row, col - 1, WEST)] = 0.7;
 			// South
-			row = 3;
+			row = rows-1;
 			// looking north
 			transitionMatrix[i(row, col, NORTH)][i(row, col + 1, EAST)] = 0.15;
 			transitionMatrix[i(row, col, NORTH)][i(row - 1, col, NORTH)] = 0.7;
@@ -207,7 +243,7 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row - 1, col, NORTH)] = 0.15;
 			transitionMatrix[i(row, col, WEST)][i(row, col - 1, WEST)] = 0.7;
 		}
-		for (row = 1; row <= 2; row++) {
+		for (row = 1; row <= rows - 2; row++) {
 			// West
 			col = 0;
 			// Looking north
@@ -227,7 +263,7 @@ public class OurLocalizer implements EstimatorInterface {
 			transitionMatrix[i(row, col, WEST)][i(row, col + 1, EAST)] = 0.33;
 			transitionMatrix[i(row, col, WEST)][i(row + 1, col, SOUTH)] = 0.33;
 			// East
-			col = 3;
+			col = cols-1;
 			// looking north
 			transitionMatrix[i(row, col, NORTH)][i(row - 1, col, NORTH)] = 0.7;
 			transitionMatrix[i(row, col, NORTH)][i(row, col - 1, WEST)] = 0.15;
@@ -271,10 +307,18 @@ public class OurLocalizer implements EstimatorInterface {
 				}
 			}
 		}
+		
+		//Fill start values in f matrix
+		for(row = 0; row < f.getRowDimension(); row++) {
+			for(col = 0; col < f.getColumnDimension(); col++) {
+				f.setEntry(row, col, 1.0/stateSize);
+			}
+		}
+		
 	}
 
 	private int i(int row, int col, int heading) {
-		return 16 * row + 4 * col + heading % 4;
+		return (cols*heads) * row + (heads) * col + heading % 4;
 	}
 
 	@Override
@@ -295,7 +339,7 @@ public class OurLocalizer implements EstimatorInterface {
 	@Override
 	public void update() {
 		
-		double[][] currentSensorO = new double[64][64];
+		double[][] currentSensorO = new double[stateSize][stateSize];
 		//System.out.println("New X Y");
 		for(int i = 0; i < sensorMatrix.length; i++) {
 			if(sensorPosition != null) {
