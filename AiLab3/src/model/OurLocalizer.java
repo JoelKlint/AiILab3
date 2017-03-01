@@ -2,11 +2,9 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.stream.DoubleStream;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
 
 import control.EstimatorInterface;
 
@@ -19,15 +17,14 @@ public class OurLocalizer implements EstimatorInterface {
 	
 	private double alpha = 1;
 	
-	private boolean firstCalc = true;
 	private RealMatrix f = MatrixUtils.createRealMatrix(new double[64][1]);
-	//private double[][] f = new double[64][64];
 
 	private int currentStateIndex;
 	private int[] sensorPosition = new int[2];
 
 	double[][] transitionMatrix = new double[64][64];
 	double[][] sensorMatrix = new double[64][64];
+	double[][] sensorNullMatrix = new double[64][64];
 	State[] states = new State[64];
 	private int rows, cols, heads;
 
@@ -44,6 +41,32 @@ public class OurLocalizer implements EstimatorInterface {
 			for(int col = 0; col < f.getColumnDimension(); col++) {
 				f.setEntry(row, col, 0.015625);
 			}
+		}
+		
+		//Create sensor matrix for when sensor returns nothing
+		for(int heading = 0; heading <= WEST; heading++) {
+			//Corners
+			sensorNullMatrix[i(0, 0, heading)][i(0, 0, heading)] = 0.625;
+			sensorNullMatrix[i(0, 3, heading)][i(0, 3, heading)] = 0.625;
+			sensorNullMatrix[i(3, 0, heading)][i(3, 0, heading)] = 0.625;
+			sensorNullMatrix[i(3, 3, heading)][i(3, 3, heading)] = 0.625;
+			
+			//walls
+			for(int col = 1; col <= 2; col++) {
+				sensorNullMatrix[i(0, col, heading)][i(0, col, heading)] = 0.5;
+				sensorNullMatrix[i(3, col, heading)][i(3, col, heading)] = 0.5;
+			}
+			for(int row = 1; row <= 2; row++) {
+				sensorNullMatrix[i(row, 0, heading)][i(row, 0, heading)] = 0.5;
+				sensorNullMatrix[i(row, 3, heading)][i(row, 0, heading)] = 0.5;
+			}
+			
+			//middle
+			for(int row = 1; row <= 2;  row++) {
+				for(int col = 1; col <= 2; col++) {
+					sensorNullMatrix[i(row, col, heading)][i(row, col, heading)] = 0.325;
+				}
+				}
 		}
 		
 		// Create all possible states
@@ -283,8 +306,7 @@ public class OurLocalizer implements EstimatorInterface {
 				currentSensorO[i][i] = sensorMatrix[i(sRow, sCol, NORTH)][i];
 			}
 			else {
-				State curState = states[currentStateIndex];
-				currentSensorO[i][i] = 1 - (DoubleStream.of(sensorMatrix[i(curState.getRow(), curState.getCol(), NORTH)]).sum()/4);
+				currentSensorO = sensorNullMatrix;				
 			}
 		}
 		RealMatrix sensor = MatrixUtils.createRealMatrix(currentSensorO);
@@ -298,6 +320,7 @@ public class OurLocalizer implements EstimatorInterface {
 			fSum += value;
 		}
 		alpha = 1/fSum;
+		f = f.scalarMultiply(alpha);
 
 		Random rand = new Random();
 		double random = rand.nextDouble();
@@ -309,7 +332,6 @@ public class OurLocalizer implements EstimatorInterface {
 				// Check if random is in prob interval
 				if (random >= totProb && random < totProb + probs[col]) {
 					// We have found our next state
-					State state = states[col];
 					currentStateIndex = col;
 					break;
 				} else {
@@ -396,13 +418,13 @@ public class OurLocalizer implements EstimatorInterface {
 		res += f.getEntry(i(x, y, EAST), 0);
 		res += f.getEntry(i(x, y, SOUTH), 0);
 		res += f.getEntry(i(x, y, WEST), 0);
-		return alpha * res;
+		return res;
 	}
 
 	@Override
 	public double getOrXY(int rX, int rY, int x, int y) {
 		if(rY == -1 || rX == -1) {
-			return 1 - (DoubleStream.of(sensorMatrix[i(x, y, NORTH)]).sum()/4);
+			return sensorNullMatrix[i(x, y, NORTH)][i(x, y, NORTH)];
 		}
 		else {
 			return sensorMatrix[i(x, y, NORTH)][i(rX, rY, NORTH)];
